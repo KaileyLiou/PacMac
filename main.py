@@ -13,7 +13,8 @@ font = pygame.font.Font(None, 40)
 
 cat_image = pygame.image.load("assets/cat.png").convert_alpha()
 dog_image = pygame.image.load("assets/dog.png").convert_alpha()
-fish_image = pygame.image.load("assets/fish.png").convert_alpha()
+fish_image1 = pygame.image.load("assets/salmonNigiri.png").convert_alpha()
+fish_image2 = pygame.image.load("assets/tunaNigiri.png").convert_alpha()
 
 class Cat:
     def __init__(self, x, y):
@@ -24,6 +25,13 @@ class Cat:
     def draw(self, screen):
         screen.blit(self.image, (self.x, self.y))
 
+class Walls:
+    def __init__ (self):
+        self.width = ""
+        self.height = ""
+        
+        
+
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -33,7 +41,7 @@ while running:
 
     screen.blit(cat_image, (100, 100))
     screen.blit(dog_image, (300, 100))
-    screen.blit(fish_image, (500, 100))
+    screen.blit(fish_image1, (500, 100))
 
     score_text = font.render(f"Score: {score}", True, (0, 0, 0))
     screen.blit(score_text, (10, 10))
