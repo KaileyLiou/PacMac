@@ -27,8 +27,9 @@ class Cat:
 
 class Walls:
     def __init__ (self):
-        self.width = ""
-        self.height = ""
+        self.width = 30
+        self.height = 30
+        self.position_X = random.randint()
         
         
 
