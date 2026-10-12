@@ -158,6 +158,24 @@ while running:
     keys = pygame.key.get_pressed()
     cat.update(keys)
 
+    
+    for dog in dogs:
+        touched_cat = dog.update(cat)
+
+        if touched_cat and invincibility_timer == 0:
+            lives -= 1
+            invincibility_timer = 120
+
+            cat.position = pygame.Vector2(100, 100)
+            cat.velocity = pygame.Vector2(0, 0)
+
+    if invincibility_timer > 0:
+        invincibility_timer -= 1
+
+    if lives <= 0:
+        running = False
+
+
     screen.fill((255, 255, 255))
     cat.draw(screen)
 
