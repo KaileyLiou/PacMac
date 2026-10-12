@@ -139,6 +139,16 @@ class Walls:
 
 cat = Cat(100, 100)
 
+dogs = [
+    Dog(300, 100),
+    Dog(800, 150),
+    Dog(400, 600),
+    Dog(1000, 600)
+]
+
+invincibility_timer = 0
+
+
 running = True
 while running:
     for event in pygame.event.get():
