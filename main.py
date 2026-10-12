@@ -179,6 +179,11 @@ while running:
     screen.fill((255, 255, 255))
     cat.draw(screen)
 
+    
+    for dog in dogs:
+        dog.draw(screen)
+
+
     score_text = font.render(f"Score: {score}", True, (0, 0, 0))
     lives_text = font.render(f"Lives: {lives}", True, (0, 0, 0))
     screen.blit(score_text, (10, 10))
