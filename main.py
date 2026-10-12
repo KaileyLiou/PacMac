@@ -59,25 +59,27 @@ class Walls:
     def __init__ (self):
         self.width = 30
         self.height = 30
-        self.position_X = random.randint()
-        
+        self.position_X = random.randint(0, 1200 - self.width)
+        self.position_Y = random.randint(0, 800 - self.height)
+
 cat = Cat(100, 100)
 
+running = True
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
 
-    screen.fill((255, 255, 255))
+    keys = pygame.key.get_pressed()
+    cat.update(keys)
 
-    screen.blit(cat_image, (100, 100))
-    screen.blit(dog_image, (300, 100))
-    screen.blit(fish_image1, (500, 100))
+    screen.fill((255, 255, 255))
+    cat.draw(screen)
 
     score_text = font.render(f"Score: {score}", True, (0, 0, 0))
+    lives_text = font.render(f"Lives: {lives}", True, (0, 0, 0))
     screen.blit(score_text, (10, 10))
     screen.blit(lives_text, (10, 50))
-
 
     pygame.display.flip()
     clock.tick(60)
