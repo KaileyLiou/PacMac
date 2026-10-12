@@ -56,6 +56,80 @@ class Cat:
     def draw(self, screen):
         screen.blit(self.image, (self.position.x, self.position.y))
 
+
+class Dog:
+    def __init__(self, x, y):
+        self.position = pygame.Vector2(x, y)
+        self.velocity = pygame.Vector2(0, 0)
+        self.direction = pygame.Vector2(1, 0)
+        self.image = dog_image
+        self.speed = 2
+        self.chase_range = 300
+        self.state = "patrol"
+        self.patrol_timer = 0
+
+    def get_rect(self):
+        return self.image.get_rect(topleft=(self.position.x, self.position.y))
+
+    def update(self, cat):
+        cat_center = pygame.Vector2(cat.get_rect().center)
+        dog_center = pygame.Vector2(self.get_rect().center)
+
+        difference = cat_center - dog_center
+        distance = dog_center.distance_to(cat_center)
+
+        if distance > 0:
+            direction_to_cat = difference.normalize()
+            dot_product = self.direction.dot(direction_to_cat)
+        else:
+            direction_to_cat = pygame.Vector2(0, 0)
+            dot_product = 1
+
+        if distance < self.chase_range and dot_product > 0.5:
+            self.state = "chase"
+        else:
+            self.state = "patrol"
+
+        if self.state == "chase":
+            self.velocity = direction_to_cat * self.speed
+
+            if distance > 0:
+                self.direction = direction_to_cat
+
+        else:
+            self.patrol_timer += 1
+
+            if self.patrol_timer >= 90:
+                angle = random.uniform(0, 2 * math.pi)
+
+                self.direction = pygame.Vector2(
+                    math.cos(angle),
+                    math.sin(angle)
+                )
+
+                self.patrol_timer = 0
+
+            self.velocity = self.direction * self.speed
+
+        self.position += self.velocity
+
+        max_x = max(0, 1200 - self.image.get_width())
+        max_y = max(0, 800 - self.image.get_height())
+
+        if self.position.x < 0 or self.position.x > max_x:
+            self.position.x = max(0, min(self.position.x, max_x))
+            self.direction.x *= -1
+
+        if self.position.y < 0 or self.position.y > max_y:
+            self.position.y = max(0, min(self.position.y, max_y))
+            self.direction.y *= -1
+
+        return self.get_rect().colliderect(cat.get_rect())
+
+    def draw(self, screen):
+        screen.blit(self.image, (self.position.x, self.position.y))
+
+
 class Walls:
     def __init__ (self):
         self.width = 30
