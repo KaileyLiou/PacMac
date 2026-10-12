@@ -9,6 +9,7 @@ pygame.display.set_caption("Project 2: Arcade Game")
 clock = pygame.time.Clock()
 
 score = 0
+lives = 9
 font = pygame.font.Font(None, 40)
 
 cat_image = pygame.image.load("assets/cat.png").convert_alpha()
@@ -18,12 +19,41 @@ fish_image2 = pygame.image.load("assets/tunaNigiri.png").convert_alpha()
 
 class Cat:
     def __init__(self, x, y):
-        self.x = x
-        self.y = y
+        self.position = pygame.Vector2(x, y)
+        self.velocity = pygame.Vector2(0, 0)
         self.image = cat_image
+        self.acceleration_strength = 0.8
+        self.drag = 0.9
+        self.max_speed = 6
+
+    def get_rect(self):
+        return self.image.get_rect(topleft=(self.position.x, self.position.y))
+
+    def update(self, keys):
+        acceleration = pygame.Vector2(0, 0)
+        if keys[pygame.K_LEFT]:
+            acceleration.x -= 1
+        if keys[pygame.K_RIGHT]:
+            acceleration.x += 1
+        if keys[pygame.K_UP]:
+            acceleration.y -= 1
+        if keys[pygame.K_DOWN]:
+            acceleration.y += 1
+
+        if acceleration.length() > 0:
+            acceleration = acceleration.normalize() * self.acceleration_strength
+
+        self.velocity += acceleration
+        self.velocity *= self.drag
+        if self.velocity.length() > self.max_speed:
+            self.velocity.scale_to_length(self.max_speed)
+
+        self.position += self.velocity
+        self.position.x = max(0, min(self.position.x, 1200 - self.image.get_width()))
+        self.position.y = max(0, min(self.position.y, 800 - self.image.get_height()))
 
     def draw(self, screen):
-        screen.blit(self.image, (self.x, self.y))
+        screen.blit(self.image, (self.position.x, self.position.y))
 
 class Walls:
     def __init__ (self):
@@ -31,7 +61,7 @@ class Walls:
         self.height = 30
         self.position_X = random.randint()
         
-        
+cat = Cat(100, 100)
 
 while running:
     for event in pygame.event.get():
