@@ -13,6 +13,7 @@ lives = 9
 font = pygame.font.Font(None, 40)
 
 cat_image = pygame.image.load("assets/cat.png").convert_alpha()
+cat_image = pygame.transform.scale(cat_image, (100, 100))
 dog_image = pygame.image.load("assets/dog.png").convert_alpha()
 fish_image1 = pygame.image.load("assets/salmonNigiri.png").convert_alpha()
 fish_image2 = pygame.image.load("assets/tunaNigiri.png").convert_alpha()
