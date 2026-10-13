@@ -18,6 +18,8 @@ dog_image = pygame.image.load("assets/dog.png").convert_alpha()
 dog_image = pygame.transform.scale(dog_image, (80, 80))
 fish_image1 = pygame.image.load("assets/salmonNigiri.png").convert_alpha()
 fish_image2 = pygame.image.load("assets/tunaNigiri.png").convert_alpha()
+wall_image = pygame.image.load("assets/wallBlock.png").convert_alpha()
+wall_image = pygame.transform.scale(wall_image, (25, 25))
 
 class Cat:
     def __init__(self, x, y):
