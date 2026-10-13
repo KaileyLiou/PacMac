@@ -135,10 +135,21 @@ class Dog:
 
 class Walls:
     def __init__ (self):
-        self.width = 30
-        self.height = 30
-        self.position_X = random.randint(0, 1200 - self.width)
-        self.position_Y = random.randint(0, 800 - self.height)
+        position_X = 25 * random.randint(0, 47)
+        position_Y = 25 * random.randint(0, 31)
+        self.image = wall_image
+        self.VectorWall = pygame.math.Vector2(position_X, position_Y)
+
+    def collisionCat(self, cat):
+        distance = self.VectorWall.distance_to(cat.position)
+        return distance < 50 + 25 / 2
+
+    def collisionDog(self, dog):
+        distance = self.VectorWall.distance_to(dog.position)
+        return distance < 40 + 25 / 2
+
+    def draw(self, screen):
+        screen.blit(self.image, self.VectorWall)
 
 cat = Cat(100, 100)
 
