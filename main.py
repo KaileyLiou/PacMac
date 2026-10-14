@@ -178,15 +178,15 @@ while running:
         if wall.get_rect().colliderect(cat.get_rect()):
             #check x vel
             if cat.velocity.x > 0:
-                cat.get_rect().right = wall.get_rect().left
+                cat.position.x = wall.get_rect().left - cat.get_rect().width
             if cat.velocity.x < 0:
-                cat.get_rect().left = wall.get_rect().right
+                cat.position.x = wall.get_rect().right
 
             #check y vel
             if cat.velocity.y > 0:
-                cat.get_rect().top = wall.get_rect().bottom
+                cat.position.y = wall.get_rect().top - cat.get_rect().height
             if cat.velocity.y < 0:
-                cat.get_rect().bottom = wall.get_rect().top
+                cat.position.y = wall.get_rect().bottom
 
     #dog-cat collision (attack)
     for dog in dogs:
