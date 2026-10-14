@@ -8,10 +8,13 @@ screen = pygame.display.set_mode((1200, 800))
 pygame.display.set_caption("Project 2: Arcade Game")
 clock = pygame.time.Clock()
 
+#Variables
 score = 0
 lives = 9
+numWalls = 10
 font = pygame.font.Font(None, 40)
 
+#IMAGE LINKING
 cat_image = pygame.image.load("assets/cat.png").convert_alpha()
 cat_image = pygame.transform.scale(cat_image, (100, 100))
 dog_image = pygame.image.load("assets/dog.png").convert_alpha()
@@ -21,6 +24,7 @@ fish_image2 = pygame.image.load("assets/tunaNigiri.png").convert_alpha()
 wall_image = pygame.image.load("assets/wallBlock.png").convert_alpha()
 wall_image = pygame.transform.scale(wall_image, (25, 25))
 
+#CLASSESSSSSS
 class Cat:
     def __init__(self, x, y):
         self.position = pygame.Vector2(x, y)
@@ -58,8 +62,6 @@ class Cat:
 
     def draw(self, screen):
         screen.blit(self.image, (self.position.x, self.position.y))
-
-
 class Dog:
     def __init__(self, x, y):
         self.position = pygame.Vector2(x, y)
@@ -131,48 +133,62 @@ class Dog:
 
     def draw(self, screen):
         screen.blit(self.image, (self.position.x, self.position.y))
-
-
 class Walls:
     def __init__ (self):
-        position_X = 25 * random.randint(0, 47)
-        position_Y = 25 * random.randint(0, 31)
+        self.position_X = 25 * random.randint(0, 47)
+        self.position_Y = 25 * random.randint(0, 31)
         self.image = wall_image
-        self.VectorWall = pygame.math.Vector2(position_X, position_Y)
+        self.VectorWall = pygame.math.Vector2(self.position_X, self.position_Y)
 
-    def collisionCat(self, cat):
-        distance = self.VectorWall.distance_to(cat.position)
-        return distance < 50 + 25 / 2
-
-    def collisionDog(self, dog):
-        distance = self.VectorWall.distance_to(dog.position)
-        return distance < 40 + 25 / 2
+    def get_rect(self):
+            return self.image.get_rect(topleft=(self.VectorWall))
 
     def draw(self, screen):
         screen.blit(self.image, self.VectorWall)
 
+#GAME OBJECT CREATION
+#Cat
 cat = Cat(100, 100)
-
-dogs = [
-    Dog(300, 100),
-    Dog(800, 150),
-    Dog(400, 600),
-    Dog(1000, 600)
-]
+#dog
+dogs = [Dog(300, 100),
+        Dog(800, 150),
+        Dog(400, 600),
+        Dog(1000, 600)]
+#Walls
+walls = []
+for w in range(10):
+    wall = Walls()
+    walls.append(wall)
 
 invincibility_timer = 0
 
-
+#Game Start
 running = True
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-
     keys = pygame.key.get_pressed()
-    cat.update(keys)
-
     
+    #player updates
+    cat.update(keys)
+    
+    #wall-cat collision
+    for wall in walls:
+        if wall.get_rect().colliderect(cat.get_rect()):
+            #check x vel
+            if cat.velocity.x > 0:
+                cat.get_rect().right = wall.get_rect().left
+            if cat.velocity.x < 0:
+                cat.get_rect().left = wall.get_rect().right
+
+            #check y vel
+            if cat.velocity.y > 0:
+                cat.get_rect().top = wall.get_rect().bottom
+            if cat.velocity.y < 0:
+                cat.get_rect().bottom = wall.get_rect().top
+
+    #dog-cat collision (attack)
     for dog in dogs:
         touched_cat = dog.update(cat)
 
@@ -183,21 +199,25 @@ while running:
             cat.position = pygame.Vector2(100, 100)
             cat.velocity = pygame.Vector2(0, 0)
 
+    #invincibility Cooldown
     if invincibility_timer > 0:
         invincibility_timer -= 1
-
+    
+    #game over if lives r out
     if lives <= 0:
         running = False
 
-
+    #RENDERING
     screen.fill((255, 255, 255))
-    cat.draw(screen)
-
-    
+    #cat render
+    cat.draw(screen)  
+    #dog render
     for dog in dogs:
         dog.draw(screen)
-
-
+    #wall render
+    for wall in walls:
+        wall.draw(screen)
+    #TEXTT
     score_text = font.render(f"Score: {score}", True, (0, 0, 0))
     lives_text = font.render(f"Lives: {lives}", True, (0, 0, 0))
     screen.blit(score_text, (10, 10))
