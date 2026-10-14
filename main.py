@@ -175,18 +175,43 @@ while running:
     
     #wall-cat collision
     for wall in walls:
-        if wall.get_rect().colliderect(cat.get_rect()):
+        if wall.get_rect().colliderect(cat.get_rect()) and cat.velocity.x != 0:
             #check x vel
             if cat.velocity.x > 0:
                 cat.position.x = wall.get_rect().left - cat.get_rect().width
             if cat.velocity.x < 0:
                 cat.position.x = wall.get_rect().right
 
+        if wall.get_rect().colliderect(cat.get_rect()) and cat.velocity.y != 0:
             #check y vel
             if cat.velocity.y > 0:
-                cat.position.y = wall.get_rect().top - cat.get_rect().height
+                cat.position.y = wall.get_rect().top + cat.get_rect().height
             if cat.velocity.y < 0:
                 cat.position.y = wall.get_rect().bottom
+
+    #wall-dog collision
+    for wall in walls:
+        for dog in dogs:
+            if wall.get_rect().colliderect(dog.get_rect()):
+                #x coordssss
+                if dog.velocity.x > 0:
+                    dog.position.x = wall.get_rect().left - dog.get_rect().width
+                    dog.velocity.x *= -1
+                    dog.direction.x *= -1
+                if dog.velocity.x < 0:
+                    dog.position.x = wall.get_rect().right
+                    dog.velocity.x *= -1
+                    dog.direction.x *= -1
+
+                #y coordsss
+                if dog.velocity.y > 0:
+                    dog.position.y = wall.get_rect().top - dog.get_rect().height
+                    dog.velocity.y *= -1
+                    dog.direction.y *= -1
+                if dog.velocity.y < 0:
+                    dog.position.y = wall.get_rect().bottom
+                    dog.velocity.y *= -1
+                    dog.direction.y *= -1
 
     #dog-cat collision (attack)
     for dog in dogs:
