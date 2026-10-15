@@ -22,7 +22,7 @@ dog_image = pygame.transform.scale(dog_image, (80, 80))
 fish_image1 = pygame.image.load("assets/salmonNigiri.png").convert_alpha()
 fish_image2 = pygame.image.load("assets/tunaNigiri.png").convert_alpha()
 wall_image = pygame.image.load("assets/wallBlock.png").convert_alpha()
-wall_image = pygame.transform.scale(wall_image, (25, 25))
+wall_image = pygame.transform.scale(wall_image, (50, 50))
 bg_image = pygame.image.load("bg_image.png").convert_alpha()
 bg_image = pygame.transform.scale(bg_image, (1200, 800))
 
@@ -137,8 +137,8 @@ class Dog:
         screen.blit(self.image, (self.position.x, self.position.y))
 class Walls:
     def __init__ (self):
-        self.position_X = 25 * random.randint(0, 47)
-        self.position_Y = 25 * random.randint(0, 31)
+        self.position_X = 25 * random.randint(0, 23)
+        self.position_Y = 25 * random.randint(0, 15)
         self.image = wall_image
         self.VectorWall = pygame.math.Vector2(self.position_X, self.position_Y)
 
