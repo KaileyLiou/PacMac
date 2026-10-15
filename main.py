@@ -23,6 +23,8 @@ fish_image1 = pygame.image.load("assets/salmonNigiri.png").convert_alpha()
 fish_image2 = pygame.image.load("assets/tunaNigiri.png").convert_alpha()
 wall_image = pygame.image.load("assets/wallBlock.png").convert_alpha()
 wall_image = pygame.transform.scale(wall_image, (25, 25))
+bg_image = pygame.image.load("bg_image.png").convert_alpha()
+bg_image = pygame.transform.scale(bg_image, (1200, 800))
 
 #CLASSESSSSSS
 class Cat:
@@ -233,7 +235,7 @@ while running:
         running = False
 
     #RENDERING
-    screen.fill((255, 255, 255))
+    screen.blit(bg_image, (0, 0))
     #cat render
     cat.draw(screen)  
     #dog render
