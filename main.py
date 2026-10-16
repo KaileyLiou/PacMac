@@ -156,6 +156,7 @@ class Dog:
     def draw(self, screen):
         screen.blit(self.image, (self.position.x, self.position.y))
 
+# fish class for buffs and projectiles
 class Sushi:
     def __init__(self, x, y, sushi_type):
         self.x = x
@@ -230,6 +231,23 @@ class Walls:
     def draw(self, screen):
         screen.blit(self.image, self.VectorWall)
 
+# portal class for tp
+class Portal:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.image = portal_image
+
+    def teleport(p1, p2, object):
+        p1_rect = p1.get_rect()
+        p2_rect = p2.get_rect()
+        if (p1_rect.collidedirect(object.get_rect())):
+            object.x = p2.x
+            object.y = p2.y
+        if (p2_rect.collidedirect(object.get_rect())):
+            object.x = p1.x
+            object.y = p1.y
+
 #GAME OBJECT CREATION
 #Cat
 cat = Cat(100, 100)
@@ -244,6 +262,7 @@ for w in range(10):
     wall = Walls()
     walls.append(wall)
 
+# make sushi method; more salmon than anything else
 def new_sushi():
     sushi_type = random.choice(["salmon", "salmon", "salmon", "salmon", "salmon", "salmon", "tuna", "fish3"])
     while True:
@@ -251,6 +270,7 @@ def new_sushi():
         if not any(wall.get_rect().colliderect(sushi.get_rect()) for wall in walls):
             return sushi
 
+# make 20 sushi
 sushis = []
 for s in range(19):
     sushis.append(new_sushi())
