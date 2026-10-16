@@ -163,13 +163,13 @@ class Sushi:
         self.y = y
         self.sushi_type = sushi_type
         if sushi_type == "salmon":
-            self.image = salmon_image
+            self.image = fish_image1
         elif sushi_type == "tuna":
-            self.image = tuna_image
+            self.image = fish_image2
         elif sushi_type == "fish3":
-            self.image = fish3_image
+            self.image = fish_image3
         else:
-            self.image = fish4_image
+            self.image = fish_image5
         self.collected = False
         self.flying = False
         self.velocity = pygame.Vector2(0, 0)
