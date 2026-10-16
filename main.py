@@ -26,6 +26,12 @@ wall_image = pygame.transform.scale(wall_image, (50, 50))
 bg_image = pygame.image.load("bg_image.png").convert_alpha()
 bg_image = pygame.transform.scale(bg_image, (1200, 800))
 
+# sounds
+fish_collection_sound = pygame.mixer.Sound("assets/collection.ogg")
+dog_aggression_sound = pygame.mixer.Sound("assets/aggression.ogg")
+game_music = pygame.mixer.Sound("assets/music.ogg")
+portal_mist_sound = pygame.mixer.Sound("assets/portal.ogg")
+
 #CLASSESSSSSS
 class Cat:
     def __init__(self, x, y):
@@ -35,6 +41,9 @@ class Cat:
         self.acceleration_strength = 0.8
         self.drag = 0.9
         self.max_speed = 6
+        self.speed_timer = 0
+        self.invincibility_timer = 0
+        self.can_shoot = False
 
     def get_rect(self):
         return self.image.get_rect(topleft=(self.position.x, self.position.y))
@@ -62,8 +71,19 @@ class Cat:
         self.position.x = max(0, min(self.position.x, 1200 - self.image.get_width()))
         self.position.y = max(0, min(self.position.y, 800 - self.image.get_height()))
 
+        if self.speed_timer > 0:
+            self.speed_timer -= 1
+        if self.invincibility_timer > 0:
+            self.invincibility_timer -= 1
+
+        if self.speed_timer > 0:
+            self.max_speed = 10
+        else:
+            self.max_speed = 6
+
     def draw(self, screen):
         screen.blit(self.image, (self.position.x, self.position.y))
+
 class Dog:
     def __init__(self, x, y):
         self.position = pygame.Vector2(x, y)
@@ -135,6 +155,68 @@ class Dog:
 
     def draw(self, screen):
         screen.blit(self.image, (self.position.x, self.position.y))
+
+class Sushi:
+    def __init__(self, x, y, sushi_type):
+        self.x = x
+        self.y = y
+        self.sushi_type = sushi_type
+        if sushi_type == "salmon":
+            self.image = salmon_image
+        elif sushi_type == "tuna":
+            self.image = tuna_image
+        elif sushi_type == "fish3":
+            self.image = fish3_image
+        else:
+            self.image = fish4_image
+        self.collected = False
+        self.flying = False
+        self.velocity = pygame.Vector2(0, 0)
+
+    def get_type(self):
+        return self.sushi_type
+
+    def get_rect(self):
+        return self.image.get_rect(topleft=(self.x, self.y))
+
+    def draw(self, screen):
+        if self.collected == False:
+            screen.blit(self.image, (self.x, self.y))
+   
+    def check_if_collected(self, screen, player):
+        global score
+        if self.collected == False and self.flying == False and player.get_rect().colliderect(self.get_rect()):
+            self.collected = True
+            fish_collection_sound.play()
+            self.apply_buff(player)
+            score += 1
+
+    def apply_buff(self, player):
+        if self.sushi_type == "tuna":
+            player.speed_timer = 600
+        elif self.sushi_type == "fish3":
+            player.invincibility_timer = 300
+        elif self.sushi_type == "fish4":
+            player.can_shoot = True
+
+    def shoot(self, target_x, target_y):
+        self.velocity = pygame.Vector2(target_x - self.x, target_y - self.y)
+        if self.velocity.length() > 0:
+            self.velocity.scale_to_length(12)
+        self.flying = True
+
+    def move(self, dogs):
+        global score
+        self.x += self.velocity.x
+        self.y += self.velocity.y
+        if self.x < 0 or self.x > 1200 or self.y < 0 or self.y > 800:
+            self.collected = True
+        for dog in dogs:
+            if self.get_rect().colliderect(dog.get_rect()):
+                self.collected = True
+                dog.position = pygame.Vector2(random.randint(0, 1120), random.randint(0, 720))
+                score += 2
+
 class Walls:
     def __init__ (self):
         self.position_X = 25 * random.randint(0, 23)
@@ -162,7 +244,18 @@ for w in range(10):
     wall = Walls()
     walls.append(wall)
 
-invincibility_timer = 0
+def new_sushi():
+    sushi_type = random.choice(["salmon", "salmon", "salmon", "salmon", "salmon", "salmon", "tuna", "fish3"])
+    while True:
+        sushi = Sushi(random.randint(0, 1150), random.randint(0, 750), sushi_type)
+        if not any(wall.get_rect().colliderect(sushi.get_rect()) for wall in walls):
+            return sushi
+
+sushis = []
+for s in range(19):
+    sushis.append(new_sushi())
+sushis.append(Sushi(600, 400, "fish4"))
+shots = []
 
 #Game Start
 running = True
@@ -219,16 +312,12 @@ while running:
     for dog in dogs:
         touched_cat = dog.update(cat)
 
-        if touched_cat and invincibility_timer == 0:
+        if touched_cat and cat.invincibility_timer == 0:
             lives -= 1
-            invincibility_timer = 120
+            cat.invincibility_timer = 120
 
             cat.position = pygame.Vector2(100, 100)
             cat.velocity = pygame.Vector2(0, 0)
-
-    #invincibility Cooldown
-    if invincibility_timer > 0:
-        invincibility_timer -= 1
     
     #game over if lives r out
     if lives <= 0:
