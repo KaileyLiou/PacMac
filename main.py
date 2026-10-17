@@ -114,17 +114,25 @@ class Cat:
         if self.velocity.length() > self.max_speed:
             self.velocity.scale_to_length(self.max_speed)
 
-        # move x and y separately so the cat slides along walls
-        stuck = any(wall.get_rect().colliderect(self.get_rect()) for wall in walls)
+        #Movement + Collosion w wall
         self.position.x += self.velocity.x
-        if stuck == False and any(wall.get_rect().colliderect(self.get_rect()) for wall in walls):
-            self.position.x -= self.velocity.x
-            self.velocity.x = 0
-
+        for wall in walls:
+            if wall.get_rect().colliderect(self.get_rect()):
+                #check x vel
+                if self.velocity.x > 0:
+                    self.position.x = wall.get_rect().left - self.get_rect().width
+                if self.velocity.x < 0:
+                    self.position.x = wall.get_rect().right
+                self.velocity.x = 0
         self.position.y += self.velocity.y
-        if stuck == False and any(wall.get_rect().colliderect(self.get_rect()) for wall in walls):
-            self.position.y -= self.velocity.y
-            self.velocity.y = 0
+        for wall in walls:
+            if wall.get_rect().colliderect(self.get_rect()):
+                #check y vel
+                if self.velocity.y > 0:
+                    self.position.y = wall.get_rect().top - self.get_rect().height
+                if self.velocity.y < 0:
+                    self.position.y = wall.get_rect().bottom
+                self.velocity.y = 0
 
         self.position.x = max(0, min(self.position.x, 1200 - self.image.get_width()))
         self.position.y = max(0, min(self.position.y, 800 - self.image.get_height()))
@@ -202,17 +210,25 @@ class Dog:
 
             self.velocity = self.direction * self.speed
 
-        # move around if the dog hits a wall
-        stuck = any(wall.get_rect().colliderect(self.get_rect()) for wall in walls)
+        #Movement + Collosion w wall
         self.position.x += self.velocity.x
-        if stuck == False and any(wall.get_rect().colliderect(self.get_rect()) for wall in walls):
-            self.position.x -= self.velocity.x
-            self.direction.x *= -1
-
+        for wall in walls:
+            if wall.get_rect().colliderect(self.get_rect()):
+                #check x vel
+                if self.velocity.x > 0:
+                    self.position.x = wall.get_rect().left - self.get_rect().width
+                if self.velocity.x < 0:
+                    self.position.x = wall.get_rect().right
+                self.velocity.x *= -1
         self.position.y += self.velocity.y
-        if stuck == False and any(wall.get_rect().colliderect(self.get_rect()) for wall in walls):
-            self.position.y -= self.velocity.y
-            self.direction.y *= -1
+        for wall in walls:
+            if wall.get_rect().colliderect(self.get_rect()):
+                #check y vel
+                if self.velocity.y > 0:
+                    self.position.y = wall.get_rect().top - self.get_rect().height
+                if self.velocity.y < 0:
+                    self.position.y = wall.get_rect().bottom
+                self.velocity.y *= -1
 
         max_x = max(0, 1200 - self.image.get_width())
         max_y = max(0, 800 - self.image.get_height())
