@@ -15,15 +15,15 @@ numWalls = 10
 font = pygame.font.Font(None, 40)
 
 #IMAGE LINKING
-cat_image = pygame.image.load("cat.png").convert_alpha()
-dog_image = pygame.image.load("dog.png").convert_alpha()
-fish_image1 = pygame.image.load("salmonNigiri.png").convert_alpha()
-fish_image2 = pygame.image.load("tunaNigiri.png").convert_alpha()
-fish_image3 = pygame.image.load("sushiRoll1.png").convert_alpha()
-fish_image4 = pygame.image.load("sushiRoll2.png").convert_alpha()
-wall_image = pygame.image.load("wallBlock.png").convert_alpha()
-portal_image = pygame.image.load("portal.png").convert_alpha()
-bg_image = pygame.image.load("bg_image.png").convert_alpha()
+cat_image = pygame.image.load("assets/cat.png").convert_alpha()
+dog_image = pygame.image.load("assets/dog.png").convert_alpha()
+fish_image1 = pygame.image.load("assets/salmonNigiri.png").convert_alpha()
+fish_image2 = pygame.image.load("assets/tunaNigiri.png").convert_alpha()
+fish_image3 = pygame.image.load("assets/sushiRoll1.png").convert_alpha()
+fish_image4 = pygame.image.load("assets/sushiRoll2.png").convert_alpha()
+wall_image = pygame.image.load("assets/wallBlock.png").convert_alpha()
+portal_image = pygame.image.load("assets/portal.png").convert_alpha()
+bg_image = pygame.image.load("assets/bg_image.png").convert_alpha()
 
 #IMAGE SCALING
 cat_image = pygame.transform.scale(cat_image, (100, 100))
@@ -35,6 +35,7 @@ fish_image4 = pygame.transform.scale(fish_image4, (50, 50))
 wall_image = pygame.transform.scale(wall_image, (50, 50))
 portal_image = pygame.transform.scale(portal_image, (80, 80))
 bg_image = pygame.transform.scale(bg_image, (1200, 800))
+
 
 # sounds
 fish_collection_sound = pygame.mixer.Sound("assets/collection.ogg")
