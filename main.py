@@ -1,3 +1,37 @@
+# ==========================================
+# Project 2 PacMac Explanation
+# ==========================================
+# Vectors:
+# The cat, dogs, and fish store their position and velocity as pygame.Vector2 objects
+
+# Distance:
+# Each dog uses distance_to() to measure how far away the cat is
+# A dog only starts chasing when the cat is within the range
+
+# Normalization:
+# A dog subtracts its position from the cat's position to get a vector pointing at the cat
+# normalize() removes the distance so the dog always chases at the same speed
+# Fish do the same with the mouse position
+
+# Angles:
+# When a dog picks a new direction, it picks a random angle and turns it into a direction vector with cosine and sine
+
+# Velocity and acceleration:
+# The arrow keys create an acceleration vector for the cat
+# In every frame velocity += acceleration and velocity *= drag
+# Speed is capped at max_speed and position += velocity
+# The cat slides a bit before stopping because of the drag
+
+# Dot product:
+# Each dog compares the direction it is facing with the direction to the cat
+# If the dot product is above the threshold,the cat is inside the dog's field of view
+
+# AI decision-making:
+# Perception: distance to the cat + dot product of facing vs. cat direction
+# Decision: if distance < range and dot > threshold then "chase", else "patrol"
+# Action: chase = move toward the cat, patrol = go in random directions
+# ==========================================
+
 import pygame
 import math
 import random
@@ -36,11 +70,10 @@ wall_image = pygame.transform.scale(wall_image, (50, 50))
 portal_image = pygame.transform.scale(portal_image, (80, 80))
 bg_image = pygame.transform.scale(bg_image, (1200, 800))
 
-
 # sounds
-fish_collection_sound = pygame.mixer.Sound("assets/collection.ogg")
-game_music = pygame.mixer.Sound("assets/music.ogg")
-portal_mist_sound = pygame.mixer.Sound("assets/portal.ogg")
+fish_collection_sound = pygame.mixer.Sound("assets/collection.ogg.ogg")
+game_music = pygame.mixer.Sound("assets/music.ogg.ogg")
+portal_mist_sound = pygame.mixer.Sound("assets/portal.ogg.ogg")
 
 #CLASSESSSSSS
 class Cat:
