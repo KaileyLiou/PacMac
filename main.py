@@ -46,7 +46,10 @@ clock = pygame.time.Clock()
 score = 0
 lives = 9
 numWalls = 10
+time_left = 5400
+game_state = "start"
 font = pygame.font.Font(None, 40)
+big_font = pygame.font.Font(None, 100)
 
 #IMAGE LINKING
 cat_image = pygame.image.load("assets/cat.png").convert_alpha()
@@ -86,13 +89,13 @@ class Cat:
         self.max_speed = 6
         self.speed_timer = 0
         self.invincibility_timer = 0
-        self.portal_cooldown = 0
+        self.portal_ready = True
         self.can_shoot = False
 
     def get_rect(self):
         return self.image.get_rect(topleft=(self.position.x, self.position.y))
 
-    def update(self, keys):
+    def update(self, keys, walls):
         acceleration = pygame.Vector2(0, 0)
         if keys[pygame.K_LEFT]:
             acceleration.x -= 1
@@ -111,7 +114,17 @@ class Cat:
         if self.velocity.length() > self.max_speed:
             self.velocity.scale_to_length(self.max_speed)
 
-        self.position += self.velocity
+        # move x and y separately so the cat slides along walls
+        self.position.x += self.velocity.x
+        if any(wall.get_rect().colliderect(self.get_rect()) for wall in walls):
+            self.position.x -= self.velocity.x
+            self.velocity.x = 0
+
+        self.position.y += self.velocity.y
+        if any(wall.get_rect().colliderect(self.get_rect()) for wall in walls):
+            self.position.y -= self.velocity.y
+            self.velocity.y = 0
+
         self.position.x = max(0, min(self.position.x, 1200 - self.image.get_width()))
         self.position.y = max(0, min(self.position.y, 800 - self.image.get_height()))
 
@@ -138,11 +151,17 @@ class Dog:
         self.chase_range = 300
         self.state = "patrol"
         self.patrol_timer = 0
+        self.stun_timer = 0
 
     def get_rect(self):
         return self.image.get_rect(topleft=(self.position.x, self.position.y))
 
-    def update(self, cat):
+    def update(self, cat, walls):
+        if self.stun_timer > 0:
+            self.stun_timer -= 1
+            self.velocity = pygame.Vector2(0, 0)
+            return False
+
         cat_center = pygame.Vector2(cat.get_rect().center)
         dog_center = pygame.Vector2(self.get_rect().center)
 
@@ -182,7 +201,16 @@ class Dog:
 
             self.velocity = self.direction * self.speed
 
-        self.position += self.velocity
+        # turn around if dog hits a wall
+        self.position.x += self.velocity.x
+        if any(wall.get_rect().colliderect(self.get_rect()) for wall in walls):
+            self.position.x -= self.velocity.x
+            self.direction.x *= -1
+
+        self.position.y += self.velocity.y
+        if any(wall.get_rect().colliderect(self.get_rect()) for wall in walls):
+            self.position.y -= self.velocity.y
+            self.direction.y *= -1
 
         max_x = max(0, 1200 - self.image.get_width())
         max_y = max(0, 800 - self.image.get_height())
@@ -259,9 +287,9 @@ class Sushi:
         if self.x < 0 or self.x > 1200 or self.y < 0 or self.y > 800:
             self.collected = True
         for dog in dogs:
-            if self.get_rect().colliderect(dog.get_rect()):
+            if self.collected == False and self.get_rect().colliderect(dog.get_rect()):
                 self.collected = True
-                dog.position = pygame.Vector2(random.randint(0, 1120), random.randint(0, 720))
+                dog.stun_timer = 180 # dog is frozen for 3 seconds
                 score += 2
 
 class Walls:
@@ -292,17 +320,21 @@ class Portal:
         screen.blit(self.image, (self.x, self.y))
 
     def teleport(p1, p2, player):
-        if player.portal_cooldown > 0:
-            player.portal_cooldown -= 1
+        touching1 = p1.get_rect().colliderect(player.get_rect())
+        touching2 = p2.get_rect().colliderect(player.get_rect())
+
+        if not touching1 and not touching2:
+            player.portal_ready = True
             return
-        if p1.get_rect().colliderect(player.get_rect()):
+        if player.portal_ready == False:
+            return
+
+        if touching1:
             player.position = pygame.Vector2(p2.x, p2.y)
-            player.portal_cooldown = 60
-            portal_mist_sound.play()
-        elif p2.get_rect().colliderect(player.get_rect()):
+        else:
             player.position = pygame.Vector2(p1.x, p1.y)
-            player.portal_cooldown = 60
-            portal_mist_sound.play()
+        player.portal_ready = False
+        portal_mist_sound.play()
 
     def update(portal, walls):
         portal.move_timer -= 1
@@ -311,7 +343,7 @@ class Portal:
             while True:
                 portal.x = random.randint(0, 1120)
                 portal.y = random.randint(0, 720)
-                if not any(wall.get_rect().colliderect(portal.get_rect()) for wall in walls):
+                if not any(wall.get_rect().colliderect(portal.get_rect().inflate(60, 60)) for wall in walls):
                     break
             portal_mist_sound.play()
 
@@ -325,9 +357,15 @@ dogs = [Dog(300, 100),
         Dog(1000, 600)]
 #Walls
 walls = []
-for w in range(10):
+while len(walls) < numWalls:
     wall = Walls()
-    walls.append(wall)
+    on_something = wall.get_rect().colliderect(cat.get_rect().inflate(100, 100))
+    on_something = on_something or wall.get_rect().colliderect(pygame.Rect(600, 400, 50, 50).inflate(60, 60))
+    for dog in dogs:
+        if wall.get_rect().colliderect(dog.get_rect().inflate(60, 60)):
+            on_something = True
+    if on_something == False:
+        walls.append(wall)
 
 # portals
 portal1 = Portal(200, 600)
@@ -348,6 +386,12 @@ for s in range(19):
 sushis.append(Sushi(600, 400, "fish4"))
 shots = []
 
+# start screen
+x_button = pygame.Rect(930, 130, 50, 50)
+overlay = pygame.Surface((1200, 800))
+overlay.set_alpha(190)
+overlay.fill((0, 0, 0))
+
 game_music.set_volume(0.4)
 game_music.play(loops = -1)
 
@@ -357,83 +401,45 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and cat.can_shoot:
-            shot = Sushi(cat.position.x + 50, cat.position.y + 50, "salmon")
+        if game_state == "start" and event.type == pygame.MOUSEBUTTONDOWN and x_button.collidepoint(event.pos):
+            game_state = "playing"
+        if game_state == "playing" and event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and cat.can_shoot:
+            shot = Sushi(cat.position.x + 25, cat.position.y + 25, "salmon")
             mouse_x, mouse_y = pygame.mouse.get_pos()
             shot.shoot(mouse_x, mouse_y)
             shots.append(shot)
     keys = pygame.key.get_pressed()
-    
-    #player updates
-    cat.update(keys)
-    
-    #wall-cat collision
-    for wall in walls:
-        if wall.get_rect().colliderect(cat.get_rect()) and cat.velocity.x != 0:
-            #check x vel
-            if cat.velocity.x > 0:
-                cat.position.x = wall.get_rect().left - cat.get_rect().width
-            if cat.velocity.x < 0:
-                cat.position.x = wall.get_rect().right
 
-        if wall.get_rect().colliderect(cat.get_rect()) and cat.velocity.y != 0:
-            #check y vel
-            if cat.velocity.y > 0:
-                cat.position.y = wall.get_rect().top + cat.get_rect().height
-            if cat.velocity.y < 0:
-                cat.position.y = wall.get_rect().bottom
-
-    #wall-dog collision
-    for wall in walls:
+    if game_state == "playing":
+        cat.update(keys, walls)
         for dog in dogs:
-            if wall.get_rect().colliderect(dog.get_rect()):
-                #x coordssss
-                if dog.velocity.x > 0:
-                    dog.position.x = wall.get_rect().left - dog.get_rect().width
-                    dog.velocity.x *= -1
-                    dog.direction.x *= -1
-                if dog.velocity.x < 0:
-                    dog.position.x = wall.get_rect().right
-                    dog.velocity.x *= -1
-                    dog.direction.x *= -1
+            touched_cat = dog.update(cat, walls)
 
-                #y coordsss
-                if dog.velocity.y > 0:
-                    dog.position.y = wall.get_rect().top - dog.get_rect().height
-                    dog.velocity.y *= -1
-                    dog.direction.y *= -1
-                if dog.velocity.y < 0:
-                    dog.position.y = wall.get_rect().bottom
-                    dog.velocity.y *= -1
-                    dog.direction.y *= -1
+            if touched_cat and cat.invincibility_timer == 0:
+                lives -= 1
+                cat.invincibility_timer = 120
 
-    #dog-cat collision (attack)
-    for dog in dogs:
-        touched_cat = dog.update(cat)
+                cat.position = pygame.Vector2(100, 100)
+                cat.velocity = pygame.Vector2(0, 0)
 
-        if touched_cat and cat.invincibility_timer == 0:
-            lives -= 1
-            cat.invincibility_timer = 120
+        for sushi in sushis:
+            sushi.check_if_collected(screen, cat)
 
-            cat.position = pygame.Vector2(100, 100)
-            cat.velocity = pygame.Vector2(0, 0)
+        for shot in shots:
+            shot.move(dogs)
 
-    # check if sushis were collected/apply buffs
-    for sushi in sushis:
-        sushi.check_if_collected(screen, cat)
+        portal1.update(walls)
+        portal2.update(walls)
+        portal1.teleport(portal2, cat)
 
-    # move shots
-    for shot in shots:
-        shot.move(dogs)
+        time_left -= 1
 
-    #update portal loc/check for tp
-    portal1.update(walls)
-    portal2.update(walls)
-    portal1.teleport(portal2, cat)
-    
-    #game over if lives r out
-    if lives <= 0:
-        running = False
+        if all(sushi.collected for sushi in sushis):
+            game_state = "win"
+            game_music.stop()
+        elif lives <= 0 or time_left <= 0:
+            game_state = "lose"
+            game_music.stop()
 
     #RENDERING
     screen.blit(bg_image, (0, 0))
@@ -455,10 +461,57 @@ while running:
     for wall in walls:
         wall.draw(screen)
     #TEXTT
+    fish_collected = sum(1 for sushi in sushis if sushi.collected)
     score_text = font.render(f"Score: {score}", True, (0, 0, 0))
     lives_text = font.render(f"Lives: {lives}", True, (0, 0, 0))
+    fish_text = font.render(f"Fish: {fish_collected}/{len(sushis)}", True, (0, 0, 0))
+    time_text = font.render(f"Time: {time_left // 60}", True, (0, 0, 0))
     screen.blit(score_text, (10, 10))
     screen.blit(lives_text, (10, 50))
+    screen.blit(fish_text, (10, 90))
+    screen.blit(time_text, (10, 130))
+    if cat.can_shoot:
+        shoot_text = font.render("Left click to shoot!", True, (0, 0, 0))
+        screen.blit(shoot_text, (10, 170))
+
+    #START SCREEN
+    if game_state == "start":
+        screen.blit(overlay, (0, 0))
+        pygame.draw.rect(screen, (40, 40, 40), (220, 120, 760, 560))
+        pygame.draw.rect(screen, (255, 255, 255), (220, 120, 760, 560), 4)
+        pygame.draw.rect(screen, (200, 40, 40), x_button)
+        x_text = font.render("X", True, (255, 255, 255))
+        screen.blit(x_text, (x_button.centerx - x_text.get_width() // 2, x_button.centery - x_text.get_height() // 2))
+
+        title_text = big_font.render("PacMac", True, (255, 255, 255))
+        screen.blit(title_text, (600 - title_text.get_width() // 2, 150))
+        instructions = [
+            "You woke up today and now you're a cat!",
+            "Collect all the sushi before time runs out.",
+            "Avoid the 4 dogs. You have 9 lives.",
+            "Arrow keys: move the cat",
+            "Tuna: speed boost    First roll: invincibility",
+            "Special roll: unlocks left click to shoot sushi",
+            "and freeze the dogs",
+            "Step on a portal to teleport to the other one",
+            "Click the X to start!"
+        ]
+        y = 280
+        for line in instructions:
+            line_text = font.render(line, True, (255, 255, 255))
+            screen.blit(line_text, (600 - line_text.get_width() // 2, y))
+            y += 45
+
+    #END SCREENS
+    if game_state == "win" or game_state == "lose":
+        screen.blit(overlay, (0, 0))
+        if game_state == "win":
+            end_text = big_font.render("YOU WIN!", True, (120, 255, 120))
+        else:
+            end_text = big_font.render("GAME OVER", True, (255, 90, 90))
+        score_end_text = font.render(f"Final score: {score}   Fish: {fish_collected}/{len(sushis)}", True, (255, 255, 255))
+        screen.blit(end_text, (600 - end_text.get_width() // 2, 300))
+        screen.blit(score_end_text, (600 - score_end_text.get_width() // 2, 420))
 
     pygame.display.flip()
     clock.tick(60)
