@@ -36,10 +36,8 @@ wall_image = pygame.transform.scale(wall_image, (50, 50))
 portal_image = pygame.transform.scale(portal_image, (80, 80))
 bg_image = pygame.transform.scale(bg_image, (1200, 800))
 
-
 # sounds
 fish_collection_sound = pygame.mixer.Sound("assets/collection.ogg")
-dog_aggression_sound = pygame.mixer.Sound("assets/aggression.ogg")
 game_music = pygame.mixer.Sound("assets/music.ogg")
 portal_mist_sound = pygame.mixer.Sound("assets/portal.ogg")
 
@@ -315,6 +313,9 @@ for s in range(19):
     sushis.append(new_sushi())
 sushis.append(Sushi(600, 400, "fish4"))
 shots = []
+
+game_music.set_volume(0.4)
+game_music.play(loops = -1)
 
 #Game Start
 running = True
