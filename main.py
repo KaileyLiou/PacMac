@@ -39,6 +39,7 @@ import sys
 import asyncio
 
 async def main():
+    global score, lives, time_left
     pygame.init()
     screen = pygame.display.set_mode((1200, 800))
     pygame.display.set_caption("Project 2: Arcade Game")
@@ -561,4 +562,3 @@ async def main():
     pygame.quit()
     sys.exit()
 asyncio.run(main())
-
