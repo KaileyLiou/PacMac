@@ -54,6 +54,7 @@ big_font = pygame.font.Font(None, 100)
 #IMAGE LINKING
 cat_image = pygame.image.load("assets/cat.png").convert_alpha()
 dog_image = pygame.image.load("assets/dog.png").convert_alpha()
+angry_dog_image = pygame.image.load("assets/angy_dog_image.png").convert_alpha()
 fish_image1 = pygame.image.load("assets/salmonNigiri.png").convert_alpha()
 fish_image2 = pygame.image.load("assets/tunaNigiri.png").convert_alpha()
 fish_image3 = pygame.image.load("assets/sushiRoll1.png").convert_alpha()
@@ -312,8 +313,8 @@ class Sushi:
 
 class Walls:
     def __init__ (self):
-        self.position_X = 25 * random.randint(0, 23)
-        self.position_Y = 25 * random.randint(0, 15)
+        self.position_X = 50 * random.randint(0, 23)
+        self.position_Y = 50 * random.randint(0, 15)
         self.image = wall_image
         self.VectorWall = pygame.math.Vector2(self.position_X, self.position_Y)
 
@@ -368,7 +369,7 @@ class Portal:
 #GAME OBJECT CREATION
 #Walls
 walls = []
-for w in range(10):
+for w in range(20):
     wall = Walls()
     walls.append(wall)
 
@@ -444,6 +445,11 @@ while running:
         cat.update(keys, walls)
 
         for dog in dogs:
+            if dog.state == "patrol":
+                        dog.image = pygame.transform.scale(dog_image, (80, 80))
+            if dog.state == "chase":
+                        dog.image = pygame.transform.scale(angry_dog_image, (80, 80))
+            
             touched_cat = dog.update(cat, walls)
 
             if touched_cat and cat.invincibility_timer == 0:
