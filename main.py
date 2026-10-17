@@ -31,11 +31,9 @@ fish_image1 = pygame.transform.scale(fish_image1, (50, 50))
 fish_image2 = pygame.transform.scale(fish_image2, (50, 50))
 fish_image3 = pygame.transform.scale(fish_image3, (50, 50))
 fish_image4 = pygame.transform.scale(fish_image4, (50, 50))
-wall_image = pygame.transform.scale(fish_image1, (50, 50))
-wall_image = pygame.transform.scale(fish_image2, (50, 50))
-wall_image = pygame.transform.scale(fish_image3, (50, 50))
 wall_image = pygame.transform.scale(wall_image, (50, 50))
 bg_image = pygame.transform.scale(bg_image, (1200, 800))
+
 
 # sounds
 fish_collection_sound = pygame.mixer.Sound("assets/collection.ogg")
