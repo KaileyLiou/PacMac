@@ -19,5 +19,5 @@ In this game, you wake up as a cat and have to collect all the sushi on the map 
 
 Use the arrow keys to move the cat. Click the X on the start screen to begin, and collect all the sushi before the timer runs out or you lose all 9 lives. After you pick up the special sushi roll, left click to shoot sushi toward the mouse. Press R on the win or game over screen to play again.
 
-<img width="1336" height="879" alt="Screenshot 2026-10-17 at 10 56 36 AM" src="https://github.com/user-attachments/assets/3f7d71fd-39f0-4303-93ac-2f2451f0e2f5" />
 <img width="1340" height="891" alt="Screenshot 2026-10-17 at 10 51 46 AM" src="https://github.com/user-attachments/assets/0704153b-9ee1-44fb-8ae0-17057bb5ad83" />
+<img width="1336" height="879" alt="Screenshot 2026-10-17 at 10 56 36 AM" src="https://github.com/user-attachments/assets/3f7d71fd-39f0-4303-93ac-2f2451f0e2f5" />
