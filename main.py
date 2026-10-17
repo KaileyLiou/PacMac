@@ -356,6 +356,14 @@ for w in range(10):
     wall = Walls()
     walls.append(wall)
 
+start_spots = [pygame.Rect(100, 100, 100, 100).inflate(100, 100),
+               pygame.Rect(600, 400, 50, 50).inflate(60, 60),
+               pygame.Rect(300, 100, 80, 80).inflate(60, 60),
+               pygame.Rect(800, 150, 80, 80).inflate(60, 60),
+               pygame.Rect(400, 600, 80, 80).inflate(60, 60),
+               pygame.Rect(1000, 600, 80, 80).inflate(60, 60)]
+walls = [wall for wall in walls if not any(wall.get_rect().colliderect(spot) for spot in start_spots)]
+
 # make sushi method; more salmon than anything else
 def new_sushi():
     sushi_type = random.choice(["salmon", "salmon", "salmon", "salmon", "salmon", "salmon", "tuna", "fish3"])
