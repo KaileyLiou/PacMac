@@ -22,6 +22,7 @@ fish_image2 = pygame.image.load("tunaNigiri.png").convert_alpha()
 fish_image3 = pygame.image.load("sushiRoll1.png").convert_alpha()
 fish_image4 = pygame.image.load("sushiRoll2.png").convert_alpha()
 wall_image = pygame.image.load("wallBlock.png").convert_alpha()
+portal_image = pygame.image.load("portal.png").convert_alpha()
 bg_image = pygame.image.load("bg_image.png").convert_alpha()
 
 #IMAGE SCALING
@@ -35,6 +36,7 @@ wall_image = pygame.transform.scale(fish_image1, (50, 50))
 wall_image = pygame.transform.scale(fish_image2, (50, 50))
 wall_image = pygame.transform.scale(fish_image3, (50, 50))
 wall_image = pygame.transform.scale(wall_image, (50, 50))
+portal_image = pygame.transform.scale(portal_image, (80, 80))
 bg_image = pygame.transform.scale(bg_image, (1200, 800))
 
 # sounds
@@ -54,6 +56,7 @@ class Cat:
         self.max_speed = 6
         self.speed_timer = 0
         self.invincibility_timer = 0
+        self.portal_cooldown = 0
         self.can_shoot = False
 
     def get_rect(self):
@@ -180,7 +183,7 @@ class Sushi:
         elif sushi_type == "fish3":
             self.image = fish_image3
         else:
-            self.image = fish_image5
+            self.image = fish_image4
         self.collected = False
         self.flying = False
         self.velocity = pygame.Vector2(0, 0)
@@ -219,6 +222,8 @@ class Sushi:
 
     def move(self, dogs):
         global score
+        if self.collected == True:
+            return
         self.x += self.velocity.x
         self.y += self.velocity.y
         if self.x < 0 or self.x > 1200 or self.y < 0 or self.y > 800:
@@ -248,16 +253,37 @@ class Portal:
         self.x = x
         self.y = y
         self.image = portal_image
+        self.move_timer = 1800
 
-    def teleport(p1, p2, object):
-        p1_rect = p1.get_rect()
-        p2_rect = p2.get_rect()
-        if (p1_rect.collidedirect(object.get_rect())):
-            object.x = p2.x
-            object.y = p2.y
-        if (p2_rect.collidedirect(object.get_rect())):
-            object.x = p1.x
-            object.y = p1.y
+    def get_rect(self):
+        return self.image.get_rect(topleft=(self.x, self.y))
+
+    def draw(self, screen):
+        screen.blit(self.image, (self.x, self.y))
+
+    def teleport(p1, p2, player):
+        if player.portal_cooldown > 0:
+            player.portal_cooldown -= 1
+            return
+        if p1.get_rect().colliderect(player.get_rect()):
+            player.position = pygame.Vector2(p2.x, p2.y)
+            player.portal_cooldown = 60
+            portal_mist_sound.play()
+        elif p2.get_rect().colliderect(player.get_rect()):
+            player.position = pygame.Vector2(p1.x, p1.y)
+            player.portal_cooldown = 60
+            portal_mist_sound.play()
+
+    def update(portal, walls):
+        portal.move_timer -= 1
+        if portal.move_timer <= 0:
+            portal.move_timer = 1800
+            while True:
+                portal.x = random.randint(0, 1120)
+                portal.y = random.randint(0, 720)
+                if not any(wall.get_rect().colliderect(portal.get_rect()) for wall in walls):
+                    break
+            portal_mist_sound.play()
 
 #GAME OBJECT CREATION
 #Cat
@@ -272,6 +298,10 @@ walls = []
 for w in range(10):
     wall = Walls()
     walls.append(wall)
+
+# portals
+portal1 = Portal(200, 600)
+portal2 = Portal(1000, 100)
 
 # make sushi method; more salmon than anything else
 def new_sushi():
@@ -294,6 +324,11 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and cat.can_shoot:
+            shot = Sushi(cat.position.x + 50, cat.position.y + 50, "salmon")
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+            shot.shoot(mouse_x, mouse_y)
+            shots.append(shot)
     keys = pygame.key.get_pressed()
     
     #player updates
@@ -349,6 +384,19 @@ while running:
 
             cat.position = pygame.Vector2(100, 100)
             cat.velocity = pygame.Vector2(0, 0)
+
+    # check if sushis were collected/apply buffs
+    for sushi in sushis:
+        sushi.check_if_collected(screen, cat)
+
+    # move shots
+    for shot in shots:
+        shot.move(dogs)
+
+    #update portal loc/check for tp
+    portal1.update(walls)
+    portal2.update(walls)
+    portal1.teleport(portal2, cat)
     
     #game over if lives r out
     if lives <= 0:
@@ -356,6 +404,15 @@ while running:
 
     #RENDERING
     screen.blit(bg_image, (0, 0))
+    # fish render
+    for sushi in sushis:
+        sushi.draw(screen)
+
+    for shot in shots:
+        shot.draw(screen)
+    # portal render
+    portal1.draw(screen)
+    portal2.draw(screen)
     #cat render
     cat.draw(screen)  
     #dog render
