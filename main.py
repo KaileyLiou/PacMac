@@ -115,13 +115,14 @@ class Cat:
             self.velocity.scale_to_length(self.max_speed)
 
         # move x and y separately so the cat slides along walls
+        stuck = any(wall.get_rect().colliderect(self.get_rect()) for wall in walls)
         self.position.x += self.velocity.x
-        if any(wall.get_rect().colliderect(self.get_rect()) for wall in walls):
+        if stuck == False and any(wall.get_rect().colliderect(self.get_rect()) for wall in walls):
             self.position.x -= self.velocity.x
             self.velocity.x = 0
 
         self.position.y += self.velocity.y
-        if any(wall.get_rect().colliderect(self.get_rect()) for wall in walls):
+        if stuck == False and any(wall.get_rect().colliderect(self.get_rect()) for wall in walls):
             self.position.y -= self.velocity.y
             self.velocity.y = 0
 
@@ -201,14 +202,15 @@ class Dog:
 
             self.velocity = self.direction * self.speed
 
-        # turn around if dog hits a wall
+        # move around if the dog hits a wall
+        stuck = any(wall.get_rect().colliderect(self.get_rect()) for wall in walls)
         self.position.x += self.velocity.x
-        if any(wall.get_rect().colliderect(self.get_rect()) for wall in walls):
+        if stuck == False and any(wall.get_rect().colliderect(self.get_rect()) for wall in walls):
             self.position.x -= self.velocity.x
             self.direction.x *= -1
 
         self.position.y += self.velocity.y
-        if any(wall.get_rect().colliderect(self.get_rect()) for wall in walls):
+        if stuck == False and any(wall.get_rect().colliderect(self.get_rect()) for wall in walls):
             self.position.y -= self.velocity.y
             self.direction.y *= -1
 
@@ -289,7 +291,7 @@ class Sushi:
         for dog in dogs:
             if self.collected == False and self.get_rect().colliderect(dog.get_rect()):
                 self.collected = True
-                dog.stun_timer = 180 # dog is frozen for 3 seconds
+                dog.stun_timer = 180   # dog is frozen for 3 seconds
                 score += 2
 
 class Walls:
@@ -348,28 +350,11 @@ class Portal:
             portal_mist_sound.play()
 
 #GAME OBJECT CREATION
-#Cat
-cat = Cat(100, 100)
-#dog
-dogs = [Dog(300, 100),
-        Dog(800, 150),
-        Dog(400, 600),
-        Dog(1000, 600)]
 #Walls
 walls = []
-while len(walls) < numWalls:
+for w in range(10):
     wall = Walls()
-    on_something = wall.get_rect().colliderect(cat.get_rect().inflate(100, 100))
-    on_something = on_something or wall.get_rect().colliderect(pygame.Rect(600, 400, 50, 50).inflate(60, 60))
-    for dog in dogs:
-        if wall.get_rect().colliderect(dog.get_rect().inflate(60, 60)):
-            on_something = True
-    if on_something == False:
-        walls.append(wall)
-
-# portals
-portal1 = Portal(200, 600)
-portal2 = Portal(1000, 100)
+    walls.append(wall)
 
 # make sushi method; more salmon than anything else
 def new_sushi():
@@ -379,12 +364,29 @@ def new_sushi():
         if not any(wall.get_rect().colliderect(sushi.get_rect()) for wall in walls):
             return sushi
 
-# make 20 sushi
-sushis = []
-for s in range(19):
-    sushis.append(new_sushi())
-sushis.append(Sushi(600, 400, "fish4"))
-shots = []
+def reset_game():
+    global score, lives, time_left, cat, dogs, portal1, portal2, sushis, shots
+    score = 0
+    lives = 9
+    time_left = 5400
+    #Cat
+    cat = Cat(100, 100)
+    #dog
+    dogs = [Dog(300, 100),
+            Dog(800, 150),
+            Dog(400, 600),
+            Dog(1000, 600)]
+    # portals
+    portal1 = Portal(200, 600)
+    portal2 = Portal(1000, 100)
+    # make 20 sushi
+    sushis = []
+    for s in range(19):
+        sushis.append(new_sushi())
+    sushis.append(Sushi(600, 400, "fish4"))
+    shots = []
+
+reset_game()
 
 # start screen
 x_button = pygame.Rect(930, 130, 50, 50)
@@ -403,6 +405,10 @@ while running:
             running = False
         if game_state == "start" and event.type == pygame.MOUSEBUTTONDOWN and x_button.collidepoint(event.pos):
             game_state = "playing"
+        if (game_state == "win" or game_state == "lose") and event.type == pygame.KEYDOWN and event.key == pygame.K_r:
+            reset_game()
+            game_state = "playing"
+            game_music.play(loops = -1)
         if game_state == "playing" and event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and cat.can_shoot:
             shot = Sushi(cat.position.x + 25, cat.position.y + 25, "salmon")
             mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -412,6 +418,7 @@ while running:
 
     if game_state == "playing":
         cat.update(keys, walls)
+
         for dog in dogs:
             touched_cat = dog.update(cat, walls)
 
@@ -510,8 +517,10 @@ while running:
         else:
             end_text = big_font.render("GAME OVER", True, (255, 90, 90))
         score_end_text = font.render(f"Final score: {score}   Fish: {fish_collected}/{len(sushis)}", True, (255, 255, 255))
+        restart_text = font.render("Press R to play again", True, (255, 255, 0))
         screen.blit(end_text, (600 - end_text.get_width() // 2, 300))
         screen.blit(score_end_text, (600 - score_end_text.get_width() // 2, 420))
+        screen.blit(restart_text, (600 - restart_text.get_width() // 2, 480))
 
     pygame.display.flip()
     clock.tick(60)
